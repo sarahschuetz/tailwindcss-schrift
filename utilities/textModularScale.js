@@ -52,14 +52,12 @@ const addSchriftVariant = (addVariant, e, theme, schrift) => {
   });
 };
 
-const addModularScaleTextClasses = ({
+const addModularScaleTextClassesWithMediaQuery = ({
   addUtilities,
   e,
   addVariant,
   theme,
-}) => {
-  const schrift = { ...defaultConfig, ...theme('schrift', {}) };
-
+}, schrift) => {
   const {
     minFontSize,
     minRatio,
@@ -78,6 +76,49 @@ const addModularScaleTextClasses = ({
 
   addUtilities(textUtilities, [VARIANT]);
   addSchriftVariant(addVariant, e, theme, schrift);
+};
+
+const addModularScaleTextClassesWithoutMediaQuery = ({
+  addUtilities,
+}, schrift) => {
+  const {
+    minFontSize,
+    maxFontSize,
+    scales,
+    minRatio,
+    maxRatio,
+    minBreakpoint,
+    maxBreakpoint,
+  } = schrift;
+
+  const textUtilities = {};
+  scales.forEach((scale) => {
+    const selector = `.${TEXT_CLASS_BASE}${scale}`;
+
+    const minFontSizeScaled = calcScale(minFontSize, minRatio, scale);
+    textUtilities[`${selector}--min`] = {
+      fontSize: `${minFontSizeScaled}px`,
+    };
+
+    const maxFontSizeScaled = calcScale(maxFontSize, maxRatio, scale);
+    textUtilities[`${selector}--max`] = {
+      fontSize: `${maxFontSizeScaled}px`,
+    };
+
+    const fontSizeFluid = calcFluid(minFontSizeScaled,
+      maxFontSizeScaled, minBreakpoint, maxBreakpoint);
+    textUtilities[`${selector}--fluid`] = {
+      fontSize: fontSizeFluid,
+    };
+  });
+
+  addUtilities(textUtilities);
+};
+
+const addModularScaleTextClasses = (options) => {
+  const schrift = { ...defaultConfig, ...options.theme('schrift', {}) };
+  addModularScaleTextClassesWithMediaQuery(options, schrift);
+  addModularScaleTextClassesWithoutMediaQuery(options, schrift);
 };
 
 module.exports = addModularScaleTextClasses;
